@@ -9,7 +9,7 @@
 /*		Auteurs :  ....						      */
 /*		Date :  ....						      */
 /*									      */
-/******************************************************************************/	
+/******************************************************************************/
 
 #include<stdio.h>
 #include <curses.h>
@@ -20,12 +20,12 @@
 #include "fon.h"     		/* Primitives de la boite a outils */
 
 #define SERVICE_DEFAUT "1111"
-#define PROTOCOLE_DEFAUT "udp"
+#define PROTOCOLE_DEFAUT "tcp"
 
 void serveur_appli (char *service, char* protocole);   /* programme serveur */
 
 
-/******************************************************************************/	
+/******************************************************************************/
 /*---------------- programme serveur ------------------------------*/
 
 main(int argc,char *argv[])
@@ -56,24 +56,30 @@ main(int argc,char *argv[])
 		  exit(1);
  	}
 
-	/* service est le service (ou numŽro de port) auquel sera affectŽ
+	/* service est le service (ou numï¿½ro de port) auquel sera affectï¿½
 	ce serveur*/
-	/* protocole est le protocole qui sera utilisŽ */
-	
+	/* protocole est le protocole qui sera utilisï¿½ */
+
 	serveur_appli(service, protocole);
 }
 
 
-/******************************************************************************/	
+/******************************************************************************/
 void serveur_appli(char *service, char *protocole)
 
 /* Procedure correspondant au traitemnt du serveur de votre application */
 
 {
 
-/* A completer ... */
+	int pid;
+	int num_sock;
+	sockadrr_in * p_adr_client; //identitÃ© du client
+
+	//Tant que le processus courrant est la fonction principal, alors le serveur attend une demande de connexion
+	while(pid != 0) {
+		h_accept (num_soc, p_adr_client);
+	}
 
 }
 
-/******************************************************************************/	
-
+/******************************************************************************/
