@@ -647,11 +647,16 @@ void adr_socket ( char *service, char *serveur, char *protocole,
 
 	/* Definition du domaine ( famille ) 	*/
 	p_adr_serv->sin_family = AF_INET;
+	
 
 
 	/* ------ RENSEIGNE @IP -----------------------------------------*/
-        if (serveur==INADDR_ANY) /* Cas d'un serveur */
-				p_adr_serv->sin_addr.s_addr =htonl( INADDR_ANY);
+        if (serveur==INADDR_ANY) {/* Cas d'un serveur */
+				p_adr_serv->sin_addr.s_addr = INADDR_ANY;
+				#ifdef DEBUG
+	printf("\n%s ADR_SOCKET (autre) .........\n",aff_debug);
+#endif
+		}
 		else
             {
             p_info_serveur = gethostbyname( serveur );

@@ -6,15 +6,19 @@
 /*									      */
 /******************************************************************************/
 /*									      */
-/*		Auteurs : ... 					*/
+/*		Auteurs : Alicia ABONNENC		  */
+/*				  Gilles BONHOURE		  */
 /*									      */
 /******************************************************************************/	
 
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <curses.h> 		/* Primitives de gestion d'Žcran */
 #include <sys/signal.h>
 #include <sys/wait.h>
+#include <netinet/in.h>
+
 #include "fon.h"   		/* primitives de la boite a outils */
 
 #define SERVICE_DEFAUT "1111"
@@ -80,11 +84,15 @@ void client_appli (char *serveur,char *service,char *protocole)
 {
   int id_socket;
   int mode;
-  struct sockadrr_in *p_adr_local;
-  
+  struct sockadrr_in p_adr_local;
+  bzero((char *) &p_adr_local, sizeof(p_adr_local));
   
   // Initialisation de l'adresse locale
-  adr_socket(service,INADDR_ANY,protocole,p_adr_local);
+  printf("TEST\n");
+  //p_adr_local = malloc(sizeof(struct sockadrr_in));
+  
+  adr_socket(service,INADDR_ANY,protocole,&p_adr_local);
+  
   
   // Initialisation du mode
   if((protocole=="udp")||(protocole=="UDP")){
@@ -97,7 +105,7 @@ void client_appli (char *serveur,char *service,char *protocole)
   
   
   // Bind
-  h_bind(id_socket,p_adr_local);
+  h_bind(id_socket,&p_adr_local);
   
   
 
