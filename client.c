@@ -18,7 +18,7 @@
 #include "fon.h"   		/* primitives de la boite a outils */
 
 #define SERVICE_DEFAUT "1111"
-#define PROTOCOLE_DEFAUT "udp"
+#define PROTOCOLE_DEFAUT "tcp"
 #define SERVEUR_DEFAUT "localhost"
 
 void client_appli (char *serveur, char *service, char *protocole);
@@ -27,7 +27,7 @@ void client_appli (char *serveur, char *service, char *protocole);
 /*****************************************************************************/
 /*--------------- programme client -----------------------*/
 
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 
 	char *serveur= SERVEUR_DEFAUT; /* serveur par defaut */
@@ -59,7 +59,7 @@ main(int argc, char *argv[])
 		  break;
 	default:
 		  printf("Usage:client serveur(nom ou @IP)  service (nom ou port)  protocole (TCP ou UDP)\n");
-		  exit(1);
+		  return 1;
 	}
 
 	/* serveur est le nom (ou l'adresse IP) auquel le client va acceder */
@@ -68,6 +68,8 @@ main(int argc, char *argv[])
 	/* protocole le protocole qui sera utilise pour la communication */
 	
 	client_appli(serveur,service,protocole);
+	
+	return 0;
 }
 
 /*****************************************************************************/
@@ -76,9 +78,30 @@ void client_appli (char *serveur,char *service,char *protocole)
 /* procedure correspondant au traitement du client de votre application */
 
 {
+  int id_socket;
+  int mode;
+  struct sockadrr_in *p_adr_local;
+  
+  
+  // Initialisation de l'adresse locale
+  adr_socket(service,INADDR_ANY,protocole,p_adr_local);
+  
+  // Initialisation du mode
+  if((protocole=="udp")||(protocole=="UDP")){
+	mode = SOCK_DGRAM;  
+  } else {
+	mode = SOCK_STREAM;
+  }
+  // Création de la socket
+  id_socket = h_socket(AF_INET,mode);
+  
+  
+  // Bind
+  h_bind(id_socket,p_adr_local);
+  
   
 
-/* a completer .....  */
+/* TODO */
 
  }
 
