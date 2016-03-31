@@ -11,13 +11,14 @@
 /*									      */
 /******************************************************************************/
 
-#include<stdio.h>
+#include <stdio.h>
 #include <curses.h>
 
-#include<sys/signal.h>
-#include<sys/wait.h>
+#include <sys/signal.h>
+#include <sys/wait.h>
 
 #include "fon.h"     		/* Primitives de la boite a outils */
+
 
 #define SERVICE_DEFAUT "1111"
 #define PROTOCOLE_DEFAUT "tcp"
@@ -53,7 +54,7 @@ main(int argc,char *argv[])
 
    	default :
 		  printf("Usage:serveur service (nom ou port) protocole (TCP ou UDP)\n");
-		  exit(1);
+		  return 1;
  	}
 
 	/* service est le service (ou num�ro de port) auquel sera affect�
@@ -71,14 +72,26 @@ void serveur_appli(char *service, char *protocole)
 
 {
 
-	int pid;
-	int num_sock;
-	sockadrr_in * p_adr_client; //identité du client
+	int pid =1;
+	int soc_parent, soc_enfant;
+	struct sockadrr_in *p_adr_client; //identité du client
+
+	int mode; //Mode du serveur
+	if(protocole == PROTOCOLE_DEFAUT) mode =  SOCK_STREAM;
+	else mode =  SOCK_DGRAM;
+
+	soc_parent = h_socket(AF_INET, mode);
+
+	printf("%d", soc_parent);
 
 	//Tant que le processus courrant est la fonction principal, alors le serveur attend une demande de connexion
-	while(pid != 0) {
-		h_accept (num_soc, p_adr_client);
+	while(1) {
+		soc_enfant = h_accept (soc_parent, p_adr_client);
+		pid = fork();
+		if(pid == 0) { break; }
 	}
+
+	printf("PID : %d, NUM_SOC : %d FIN DE FILS", pid, soc_enfant);
 
 }
 
