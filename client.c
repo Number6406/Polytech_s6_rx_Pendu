@@ -9,12 +9,12 @@
 /*		Auteurs : Alicia ABONNENC		  */
 /*				  Gilles BONHOURE		  */
 /*									      */
-/******************************************************************************/	
+/******************************************************************************/
 
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <curses.h> 		/* Primitives de gestion d'Žcran */
+#include <curses.h> 		/* Primitives de gestion d'ï¿½cran */
 #include <sys/signal.h>
 #include <sys/wait.h>
 #include <netinet/in.h>
@@ -70,48 +70,56 @@ int main(int argc, char *argv[])
 	/* service le numero de port sur le serveur correspondant au  */
 	/* service desire par le client */
 	/* protocole le protocole qui sera utilise pour la communication */
-	
+
 	client_appli(serveur,service,protocole);
-	
+
 	return 0;
 }
 
 /*****************************************************************************/
 void client_appli (char *serveur,char *service,char *protocole)
-
 /* procedure correspondant au traitement du client de votre application */
-
 {
-  int id_socket;
+
+	/*
+	struct sockaddr_in adr_serveur;
+	    adr_serveur.sin_family = AF_INET;
+
+	    int idsocket = h_socket(AF_INET,SOCK_STREAM);
+
+	    adr_socket(service, serveur, protocole, &adr_serveur);
+
+	    h_connect(idsocket, &adr_serveur);
+	*/
+
+  int soc_client;
   int mode;
-  struct sockadrr_in p_adr_local;
-  bzero((char *) &p_adr_local, sizeof(p_adr_local));
-  
-  // Initialisation de l'adresse locale
-  printf("TEST\n");
-  //p_adr_local = malloc(sizeof(struct sockadrr_in));
-  
-  adr_socket(service,INADDR_ANY,protocole,&p_adr_local);
-  
-  
+	struct sockaddr_in *p_adr_serveur = malloc(sizeof(struct sockaddr_in));
+
+	p_adr_serveur->sin_family = AF_INET;
+
   // Initialisation du mode
   if((protocole=="udp")||(protocole=="UDP")){
-	mode = SOCK_DGRAM;  
+		mode = SOCK_DGRAM;
   } else {
-	mode = SOCK_STREAM;
+		mode = SOCK_STREAM;
   }
-  // Création de la socket
-  id_socket = h_socket(AF_INET,mode);
-  
-  
-  // Bind
-  h_bind(id_socket,&p_adr_local);
-  
-  
 
-/* TODO */
+	// CrÃ©ation de la socket
+  soc_client = h_socket(AF_INET,mode);
+	adr_socket(service,serveur,protocole,p_adr_serveur);
+
+	h_connect(soc_client, p_adr_serveur);
+
+	char *tampon;
+	int len;
+
+	len = h_reads(soc_client, tampon, 800);
+
+	printf("%s", tampon);
+
+	len = h_writes(soc_client, tampon, 1);
 
  }
 
 /*****************************************************************************/
-
