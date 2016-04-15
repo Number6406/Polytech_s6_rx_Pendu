@@ -93,19 +93,37 @@ void client_appli (char *serveur,char *service,char *protocole)
 
   int soc_client;
   int mode;
-
+<<<<<<< HEAD
+  struct sockaddr_in p_adr_local;
+  
+  // Initialisation de l'adresse locale  
+  adr_socket(service,INADDR_ANY,protocole,&p_adr_local);
+  
+  
+=======
 	struct sockaddr_in *p_adr_serveur = malloc(sizeof(struct sockaddr_in));
 
 	p_adr_serveur->sin_family = AF_INET;
 
+>>>>>>> d300d0fb16a6a11275a4002e9385e7d232a8c0a5
   // Initialisation du mode
   if((protocole=="udp")||(protocole=="UDP")){
 		mode = SOCK_DGRAM;
   } else {
 		mode = SOCK_STREAM;
   }
+<<<<<<< HEAD
+  // Création de la socket
+  id_socket = h_socket(AF_INET,mode);
+  
+  // Bind
+  h_bind(id_socket,&p_adr_local);
+  
+  
+=======
+>>>>>>> d300d0fb16a6a11275a4002e9385e7d232a8c0a5
 
-	// Création de la socket
+	// CrÃ©ation de la socket
   soc_client = h_socket(AF_INET,mode);
 	adr_socket(service,serveur,protocole,p_adr_serveur);
 

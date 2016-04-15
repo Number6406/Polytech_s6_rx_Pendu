@@ -1,14 +1,14 @@
 /******************************************************************************/
-/*			Application: ....			              */
+/*			Application: socket Pendu serveur    																	*/
 /******************************************************************************/
-/*									      */
-/*			 programme  SERVEUR 				      */
-/*									      */
+/*									      																										*/
+/*			 programme  SERVEUR 				      																		*/
+/*									    																										  */
 /******************************************************************************/
-/*									      */
-/*		Auteurs :  ....						      */
-/*		Date :  ....						      */
-/*									      */
+/*									      																										*/
+/*		Auteurs :  Abonnenc Alicia 			Bonhoure Gilles										      */
+/*		Date :  Avril 2016			      																					*/
+/*									      																										*/
 /******************************************************************************/
 
 #include <stdio.h>
@@ -43,11 +43,11 @@ main(int argc,char *argv[])
 		  printf("defaut service = %s\n", service);
 		  printf("defaut protocole = %s\n", protocole);
 		  break;
- 	case 2:
+		case 2:
 		  service=argv[1];
 		  printf("defaut protocole = %s\n", protocole);
 		  break;
- 	case 3 :
+		case 3 :
 		  service=argv[1];
 		  protocole=argv[2];
 		  break;
@@ -72,26 +72,61 @@ void serveur_appli(char *service, char *protocole)
 
 {
 
+/*	struct sockaddr_in adr_serveur,adr_client;
+	    adr_client.sin_family = AF_INET;
+
+	    //creation de la socket
+	    int idsocket = h_socket(AF_INET,SOCK_STREAM);
+
+	    adr_socket(service, INADDR_ANY, protocole, &adr_serveur);
+	    //association de la socket a son adresse
+	    h_bind(idsocket, &adr_serveur);
+
+	    //ecoute de la socket
+	    h_listen(idsocket,50);
+
+	    //acceptation de la socket (attente)
+	    int id_socket_talk = h_accept(idsocket, &adr_client);
+*/
+
 	int pid =1;
-	int soc_parent, soc_enfant;
-	struct sockadrr_in *p_adr_client; //identité du client
+	int nbMaxRq = 10;
+	int soc_parent, soc_client; //sockets instanciées par le serveur et le client
+	struct sockaddr_in *p_adr_serveur = malloc(sizeof(struct sockaddr_in));
+	struct sockaddr_in *p_adr_client = malloc(sizeof(struct sockaddr_in)); //identité du client
+
+	p_adr_serveur->sin_family = AF_INET;
 
 	int mode; //Mode du serveur
 	if(protocole == PROTOCOLE_DEFAUT) mode =  SOCK_STREAM;
 	else mode =  SOCK_DGRAM;
 
 	soc_parent = h_socket(AF_INET, mode);
-
-	printf("%d", soc_parent);
+	adr_socket(service, INADDR_ANY, protocole, p_adr_serveur);
+	h_bind(soc_parent, p_adr_serveur);
+	h_listen(soc_parent, nbMaxRq);
 
 	//Tant que le processus courrant est la fonction principal, alors le serveur attend une demande de connexion
 	while(1) {
-		soc_enfant = h_accept (soc_parent, p_adr_client);
+		soc_client = h_accept(soc_parent, p_adr_client);
 		pid = fork();
 		if(pid == 0) { break; }
 	}
 
-	printf("PID : %d, NUM_SOC : %d FIN DE FILS", pid, soc_enfant);
+	char *tampon = malloc(2000);
+	int len;
+
+	len = h_writes(soc_client, "Début de partie de pendu\n", 800);
+	len = h_writes(soc_client, "Test frère\n", 800);
+
+	printf("Choisir le niveau de difficulté : \n");
+	printf("1- Facile : 20 essais\n");
+	printf("2- Moyen : 15 essais\n");
+	printf("3- Difficile : 10 essais\n");
+
+	len = h_reads(soc_client, tampon, 1);
+
+	printf("coucou");
 
 }
 
