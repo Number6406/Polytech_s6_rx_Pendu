@@ -17,7 +17,6 @@
 #include <curses.h> 		/* Primitives de gestion d'Žcran */
 #include <sys/signal.h>
 #include <sys/wait.h>
-#include <netinet/in.h>
 
 #include "fon.h"   		/* primitives de la boite a outils */
 
@@ -84,13 +83,9 @@ void client_appli (char *serveur,char *service,char *protocole)
 {
   int id_socket;
   int mode;
-  struct sockadrr_in p_adr_local;
-  bzero((char *) &p_adr_local, sizeof(p_adr_local));
+  struct sockaddr_in p_adr_local;
   
-  // Initialisation de l'adresse locale
-  printf("TEST\n");
-  //p_adr_local = malloc(sizeof(struct sockadrr_in));
-  
+  // Initialisation de l'adresse locale  
   adr_socket(service,INADDR_ANY,protocole,&p_adr_local);
   
   
@@ -102,7 +97,6 @@ void client_appli (char *serveur,char *service,char *protocole)
   }
   // Création de la socket
   id_socket = h_socket(AF_INET,mode);
-  
   
   // Bind
   h_bind(id_socket,&p_adr_local);
