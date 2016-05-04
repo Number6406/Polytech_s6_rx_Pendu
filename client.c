@@ -79,15 +79,17 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
+//Vérification de si le mot complet a été trouvé
 bool motTrouve(char *mot, int lgMot) {
 	int i = 0;
-	while (i<lgMot && mot[i] != '_') {
+	while (i<lgMot && mot[i] != '_') { //Si tous les caractères sont différents de '_' c'est que le mot a été trouvé
 		i+=1;
 		if(i>=lgMot) return true;
 	}
 	return false;
 }
 
+//Vérification d'une fin de partie : mot trouvé ou nombre de coups = 0
 bool finPartie(char *mot, int lgMot, int nbCoupsRestants) {
 	if(nbCoupsRestants == 0) return true;
 	return motTrouve(mot, lgMot);
@@ -95,10 +97,13 @@ bool finPartie(char *mot, int lgMot, int nbCoupsRestants) {
 
 void penduClient(int socket) {
 
+	//Buffer de réception
 	char buffer[800];
+	//Choix de la difficulté
 	char choice[1];
 	int nbCoupsRestants = 20;
 
+	printf("|===========================================|\n");
 	//Affichage du début de la partie.
 	h_reads(socket,buffer, BUFFER_LEN);
 	printf("%s", buffer);
@@ -108,13 +113,16 @@ void penduClient(int socket) {
 	printf("%s", buffer);
 
 	int diff;
+	//Choix de la difficulté, avec répétition si on se "trompe" de choix
 	scanf("%d", &diff);
 	while( diff <= 0 || diff > 3 ) {
 		printf("La difficulté ne peut être comprise qu'entre 1 et 3. Choisir à nouveau : ");
 		scanf("%d", &diff);
 	}
+	//Passage en char et envoie au serveur
 	choice[0] = diff + '0';
 	h_writes(socket, choice,1);
+	printf("|===========================================|\n");
 
 	//Ecriture "Début de partie"
 	h_reads(socket, buffer, BUFFER_LEN);
@@ -125,8 +133,10 @@ void penduClient(int socket) {
 	h_reads(socket, buffer, 15);
 	lgMot = atoi(buffer);
 	char *mot = malloc(sizeof(char) * lgMot);
+	printf("|===========================================|\n");
 
-	char lettre[2];
+	char lettre[2]; //Variable pour récupérer les lettres enregistrées par le client
+	//début de boucle de jeu
 	do {
 		//Verification du nombre de coups restants auprès du serveur
 		h_reads(socket, buffer, 15);
@@ -136,17 +146,18 @@ void penduClient(int socket) {
 		//Récupération de l'état du mot
 		h_reads(socket, mot, lgMot);
 		printf("Etat du mot : %s\n", mot);
-		if(finPartie(mot, lgMot, nbCoupsRestants)) break;
+		if(finPartie(mot, lgMot, nbCoupsRestants)) break; //On quitte la partie si jamais les conditions sont remplies
 
 		//Choix et envoie de la lettre
 		printf("Saisir une lettre : ");
 		scanf("%ls", lettre);
 		h_writes(socket, &lettre[0], 1);
+		printf("|===========================================|\n");
 
+	} while(true); //tourne en boucle
 
-
-	} while(true);
-
+	printf("|===========================================|\n");
+	//Message de fin en fonction du l'événement qui l'a provoqué
 	if(motTrouve(mot, lgMot)) {
 			printf("Bravo ! Vous avez trouvé le mot qui était : %s\n", mot);
 	}	else if(nbCoupsRestants == 0) {

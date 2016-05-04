@@ -68,31 +68,35 @@ main(int argc,char *argv[])
 	serveur_appli(service, protocole);
 }
 
+//Vérifie si la partie est terminée
 bool finPartie(char *etat, int nbCoupsRestants) {
 	if(nbCoupsRestants == 0) return true;
+
 	int lg = strlen(etat);
 	int i = 0;
-
+	//Permet de vérifier si toutes les lettres ont été trouvées ou non
 	while (i<lg && etat[i] != '_') i++;
 
 	if(i>=lg) return true;
 	else return false;
 }
 
+//Initialise le tableau de lettres avec 26 caractères '0'
 void initTable(char *tab) {
 	int i=0;
 	for(i; i<26; i++)
 		tab[i] = '0';
 }
 
+//Initialise l'état du mot trouvé avec des '_'
 void initEtat(char *etat, int lgMot) {
 	int i;
 	for(i=0; i<lgMot; i++) etat[i] = '_';
 }
 
+//Met à jour l'état d'affichage du mot trouvé
 void majEtat(char *etat, char *mot, char lettre, int lgMot) {
 	int i;
-	printf("%d\n", lgMot);
 	for(i=0; i<lgMot; i++) {
 		if(mot[i] == lettre) etat[i] = lettre;
 	}
@@ -100,12 +104,12 @@ void majEtat(char *etat, char *mot, char lettre, int lgMot) {
 
 void penduServeur(int socket) {
 
-	char reponse;
-	char *mot = "BIBOUP";
-	char *etat;
-	int nbCoupsRestants;
-	int lgMot;
-	char valeur_num;
+	char reponse; //Choix de l'utilsateur concernant la difficulté
+	char *mot = "BIBOUP"; //Mot définit non dynamiquement
+	char *etat; //Mot affiché à l'utilisateur (non complet donc)
+	int nbCoupsRestants; //Le nombre de coups restants à l'utilisateur avant la fin de la partie
+	int lgMot; //La taille du mot, pour transmettre facilement les données et éviter les erreurs lors des calculs
+	char valeur_num; //Valeur numérisée du choix de difficulté
 
 	//Envoi du message de début de partie.
 	h_writes(socket, "Bienvenue dans le jeu de pendu.\nVeuillez choisir le niveau de difficulté :\n1- Facile : 20 essais\n2- Moyen : 15 essais\n3- Difficile : 10 essais\n", BUFFER_LEN);
@@ -113,14 +117,16 @@ void penduServeur(int socket) {
 	//Réception de la réponse client
 	h_writes(socket, "Faire son choix : ", BUFFER_LEN);
 	h_reads(socket, &reponse, 1);
-	valeur_num = reponse - '0';
+	valeur_num = reponse - '0'; //Tranposer en entier
 
-	nbCoupsRestants = 25 - 5*valeur_num;
-	printf("Coups restants : %d\n", nbCoupsRestants);
+	nbCoupsRestants = 25 - 5*valeur_num; //Récupération du nombre de coups max en fonction de la difficulté
+	printf("[Socket %d] Coups restants : %d\n", socket, nbCoupsRestants);
 
-	h_writes(socket, "Sélection du mot...\nLa partie peut commencer :", BUFFER_LEN);
+	h_writes(socket, "Sélection du mot...\nLa partie peut commencer :\n", BUFFER_LEN);
 
+	//récupération de la longueur du mot et information au client de cette valeur
 	lgMot = strlen(mot);
+	//allocation de la taille du mot "état", qui correspond à ce que verra le client
 	etat = malloc(sizeof(char) * lgMot);
 	initEtat(etat, lgMot);
 	//On envoie la longueur du mot au client
@@ -129,13 +135,14 @@ void penduServeur(int socket) {
 	h_writes(socket, lgMotS, 15);
 
 
-	char *buffer;
-	char tableauLettres[26];
-	initTable(tableauLettres);
-	int indiceLettre;
-	char lettre;
+	char *buffer; //Buffer qui va permettre de faire les échanges
+	char tableauLettres[26]; //Tableau de 26 caractères pour savoir si une lettre a déjà été proposée
+	initTable(tableauLettres); //init à '0'
+	int indiceLettre; //Valeur décimale de la lettre dans l'alphabet
+	char lettre; //Lettre entrée par le client
+	//Début de la boucle de jeu côté serveur
 	while(!finPartie(etat,nbCoupsRestants)) {
-
+		//Définition du nombre de coups restant et information au client (c'est plus sécurisé que de laisser le client calculer de son côté)
 		char nbRest[15];
 		sprintf(nbRest, "%d", nbCoupsRestants);
 		h_writes(socket, nbRest, 15);
@@ -147,21 +154,23 @@ void penduServeur(int socket) {
 		h_reads(socket, &lettre, 1);
 		lettre = toupper(lettre);
 		indiceLettre = lettre - 'A';
-		printf("Indice : %d\n", indiceLettre);
+		printf("[Socket %d] Indice : %d\n", socket, indiceLettre);
 
+		//Mise à jour de l'affichage du mot côté client
 		if(tableauLettres[indiceLettre] == '0') {
 			majEtat(etat, mot, lettre, lgMot);
 			tableauLettres[indiceLettre] = '1';
 			nbCoupsRestants--;
 		}
-		printf("Coups : %d\n", nbCoupsRestants);
+		printf("[Socket %d] Coups : %d\n", socket, nbCoupsRestants);
+		printf("|===========================================|\n");
 
 	}
 	//Nécessaire pour finir la partie
 	char nbRest[15];
 	sprintf(nbRest, "%d", nbCoupsRestants);
-	h_writes(socket, nbRest, 15);
-	h_writes(socket, etat, lgMot);
+	h_writes(socket, nbRest, 15); //Nombre de coups, si jamais on passe à 0, il faut en informer le client, qui reste bloqué à 1
+	h_writes(socket, etat, lgMot); //Envoyer le mot complet, car le client ne le sait pas encore, comme on n'est pas rentrés dans la boucle une dernière fois côté serveur
 
 }
 
@@ -201,6 +210,7 @@ void serveur_appli(char *service, char *protocole)
 	while(1) {
 		//Récupération du socket client
 		soc_client = h_accept(soc_serveur, p_adr_client);
+		printf("|===========================================|\n");
 		pid = fork();
 		if(pid==0)
 		{
