@@ -14,6 +14,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include <curses.h> 		/* Primitives de gestion d'�cran */
 #include <sys/signal.h>
 #include <sys/wait.h>
@@ -24,6 +26,8 @@
 #define SERVICE_DEFAUT "1111"
 #define PROTOCOLE_DEFAUT "tcp"
 #define SERVEUR_DEFAUT "localhost"
+#define BUFFER_LEN 800
+#define MAXHOSTNAMELEN 255
 
 void client_appli (char *serveur, char *service, char *protocole);
 
@@ -76,25 +80,96 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
+bool motTrouve(char *mot, int lgMot) {
+	int i = 0;
+	while (i<lgMot && mot[i] != '_') {
+		i+=1;
+		if(i>=lgMot) return true;
+	}
+	return false;
+}
+
+bool finPartie(char *mot, int lgMot, int nbCoupsRestants) {
+	if(nbCoupsRestants == 0) return true;
+	return motTrouve(mot, lgMot);
+}
+
+void penduClient(int socket) {
+
+	char buffer[800];
+	char choice[1];
+	int nbCoupsRestants = 20;
+
+	//Affichage du début de la partie.
+	h_reads(socket,buffer, BUFFER_LEN);
+	printf("%s", buffer);
+
+	//Choix de la diffulté
+	h_reads(socket,buffer, BUFFER_LEN);
+	printf("%s", buffer);
+
+	int diff;
+	scanf("%d", &diff);
+	while( diff <= 0 || diff > 3 ) {
+		printf("La difficulté ne peut être comprise qu'entre 1 et 3. Choisir à nouveau : ");
+		scanf("%d", &diff);
+	}
+	choice[0] = diff + '0';
+	h_writes(socket, choice,1);
+
+	//Ecriture "Début de partie"
+	h_reads(socket, buffer, BUFFER_LEN);
+	printf("%s", buffer);
+
+	int lgMot;
+	//récupération de la longueur du mots
+	h_reads(socket, buffer, 15);
+	lgMot = atoi(buffer);
+	char *mot = malloc(sizeof(char) * lgMot);
+
+	char lettre[2];
+	do {
+		//Verification du nombre de coups restants auprès du serveur
+		h_reads(socket, buffer, 15);
+		nbCoupsRestants = atoi(buffer);
+		printf("Nombre de coups : %d\n", nbCoupsRestants);
+
+		//Récupération de l'état du mot
+		h_reads(socket, mot, lgMot);
+		printf("Etat du mot : %s\n", mot);
+		if(finPartie(mot, lgMot, nbCoupsRestants)) break;
+
+		//Choix et envoie de la lettre
+		printf("Saisir une lettre : ");
+		scanf("%ls", lettre);
+		h_writes(socket, &lettre[0], 1);
+
+
+
+	} while(true);
+
+	if(motTrouve(mot, lgMot)) {
+			printf("Bravo ! Vous avez trouvé le mot qui était : %s\n", mot);
+	}	else if(nbCoupsRestants == 0) {
+		//fin de partie : perdu car toutes les tentatives ont échoué
+		printf("Vous avez perdu car vous n'avez plus d'essai disponible.\n");
+	} else {
+		printf("Dommage, vous avez abandonné la partie :c\n");
+	}
+
+
+}
+
 /*****************************************************************************/
 void client_appli (char *serveur,char *service,char *protocole)
 /* procedure correspondant au traitement du client de votre application */
 {
 
-	/*
-	struct sockaddr_in adr_serveur;
-	    adr_serveur.sin_family = AF_INET;
-
-	    int idsocket = h_socket(AF_INET,SOCK_STREAM);
-
-	    adr_socket(service, serveur, protocole, &adr_serveur);
-
-	    h_connect(idsocket, &adr_serveur);
-	*/
-
   int soc_client;
   int mode;
+	char hostname[MAXHOSTNAMELEN + 1];
 	struct sockaddr_in *p_adr_serveur = malloc(sizeof(struct sockaddr_in));
+	struct sockaddr_in *p_adr_local = malloc(sizeof(struct sockaddr_in));
 
 	p_adr_serveur->sin_family = AF_INET;
 
@@ -105,21 +180,24 @@ void client_appli (char *serveur,char *service,char *protocole)
 		mode = SOCK_STREAM;
   }
 
-	// Création de la socket
-  soc_client = h_socket(AF_INET,mode);
-	adr_socket(service,serveur,protocole,p_adr_serveur);
+	// Création du socket
+  soc_client = h_socket(PF_INET,mode);
 
-	h_connect(soc_client, p_adr_serveur);
+	gethostname(hostname,MAXHOSTNAMELEN);
+	adr_socket(service,hostname,protocole, p_adr_local);
 
-	char *tampon;
-	int len;
-
-	len = h_reads(soc_client, tampon, 800);
-
-	printf("%s", tampon);
-
-	len = h_writes(soc_client, tampon, 1);
+	while(1)
+	{
+		adr_socket(service,hostname,protocole, p_adr_serveur);//remplit p_adr_socket
+		//CONNECT
+		h_connect(soc_client,p_adr_serveur);
+		//JOUER
+		penduClient(soc_client);
+		//CLOSE CLIENT
+		h_close(soc_client);
+		exit(0);
+		break;
+	}
 
  }
-
 /*****************************************************************************/
