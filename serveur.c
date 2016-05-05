@@ -157,7 +157,7 @@ void penduServeur(int socket) {
 
 		//Envoie de l'état du mot courrant
 		h_writes(socket, etat, lgMot);
-		printf("DEBUG ETAT : %s\n",etat);
+		//printf("DEBUG ETAT : %s\n",etat);
 
 		//récupération de la lettre tapée par le client
 		h_reads(socket, &lettre, 1);
