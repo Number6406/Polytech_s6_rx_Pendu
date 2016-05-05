@@ -145,6 +145,7 @@ void penduClient(int socket) {
 
 		//Récupération de l'état du mot
 		h_reads(socket, mot, lgMot);
+		mot[lgMot]='\0';
 		printf("Etat du mot : %s\n", mot);
 		if(finPartie(mot, lgMot, nbCoupsRestants)) break; //On quitte la partie si jamais les conditions sont remplies
 

@@ -93,14 +93,20 @@ void initTable(char *tab) {
 void initEtat(char *etat, int lgMot) {
 	int i;
 	for(i=0; i<lgMot; i++) etat[i] = '_';
+	etat[i]='\0';
 }
 
 //Met à jour l'état d'affichage du mot trouvé
-void majEtat(char *etat, char *mot, char lettre, int lgMot) {
+int majEtat(char *etat, char *mot, char lettre, int lgMot) {
 	int i;
+	int b = 0;
 	for(i=0; i<lgMot; i++) {
-		if(mot[i] == lettre) etat[i] = lettre;
+		if(mot[i] == lettre) {
+			etat[i] = lettre;
+			b = 1;
+		}
 	}
+	return b;
 }
 
 void penduServeur(int socket) {
@@ -114,14 +120,14 @@ void penduServeur(int socket) {
 	char valeur_num; //Valeur numérisée du choix de difficulté
 
 	//Envoi du message de début de partie.
-	h_writes(socket, "Bienvenue dans le jeu de pendu.\nVeuillez choisir le niveau de difficulté :\n1- Facile : 20 essais\n2- Moyen : 15 essais\n3- Difficile : 10 essais\n", BUFFER_LEN);
+	h_writes(socket, "Bienvenue dans le jeu de pendu.\nVeuillez choisir le niveau de difficulté :\n1- Facile : 15 essais\n2- Moyen : 10 essais\n3- Difficile : 5 essais\n", BUFFER_LEN);
 
 	//Réception de la réponse client
 	h_writes(socket, "Faire son choix : ", BUFFER_LEN);
 	h_reads(socket, &reponse, 1);
 	valeur_num = reponse - '0'; //Tranposer en entier
 
-	nbCoupsRestants = 25 - 5*valeur_num; //Récupération du nombre de coups max en fonction de la difficulté
+	nbCoupsRestants = 20 - 5*valeur_num; //Récupération du nombre de coups max en fonction de la difficulté
 	printf("[Socket %d] Coups restants : %d\n", socket, nbCoupsRestants);
 
 	h_writes(socket, "Sélection du mot...\nLa partie peut commencer :\n", BUFFER_LEN);
@@ -129,7 +135,7 @@ void penduServeur(int socket) {
 	//récupération de la longueur du mot et information au client de cette valeur
 	lgMot = strlen(mot);
 	//allocation de la taille du mot "état", qui correspond à ce que verra le client
-	etat = malloc(sizeof(char) * lgMot);
+	etat = malloc(sizeof(char) * (lgMot+1));
 	initEtat(etat, lgMot);
 	//On envoie la longueur du mot au client
 	char lgMotS[15];
@@ -151,6 +157,7 @@ void penduServeur(int socket) {
 
 		//Envoie de l'état du mot courrant
 		h_writes(socket, etat, lgMot);
+		printf("DEBUG ETAT : %s\n",etat);
 
 		//récupération de la lettre tapée par le client
 		h_reads(socket, &lettre, 1);
@@ -160,9 +167,10 @@ void penduServeur(int socket) {
 
 		//Mise à jour de l'affichage du mot côté client
 		if(tableauLettres[indiceLettre] == '0') {
-			majEtat(etat, mot, lettre, lgMot);
 			tableauLettres[indiceLettre] = '1';
-			nbCoupsRestants--;
+			if(!(majEtat(etat, mot, lettre, lgMot))){
+				nbCoupsRestants--;
+			}
 		}
 		printf("[Socket %d] Coups : %d\n", socket, nbCoupsRestants);
 		printf("|===========================================|\n");
