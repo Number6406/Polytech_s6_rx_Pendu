@@ -106,9 +106,11 @@ void client_appli (char *serveur,char *service,char *protocole)
   }
 
 	// Création de la socket
-  soc_client = h_socket(AF_INET,mode);
+	soc_client = h_socket(AF_INET,mode);
 	adr_socket(service,serveur,protocole,p_adr_serveur);
-
+	
+	h_bind(soc_client,p_adr_serveur);
+	
 	h_connect(soc_client, p_adr_serveur);
 
 	char *tampon;
@@ -119,6 +121,8 @@ void client_appli (char *serveur,char *service,char *protocole)
 	printf("%s", tampon);
 
 	len = h_writes(soc_client, tampon, 1);
+	
+	h_close(soc_client);
 
  }
 

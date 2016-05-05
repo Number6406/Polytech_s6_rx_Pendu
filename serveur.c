@@ -126,8 +126,8 @@ void serveur_appli(char *service, char *protocole)
 
 	len = h_reads(soc_client, tampon, 1);
 
-	printf("coucou");
+	printf("coucou\n");
 
 }
-
+// FIN de programme
 /******************************************************************************/
