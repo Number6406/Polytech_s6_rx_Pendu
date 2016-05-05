@@ -20,6 +20,7 @@
 #include <sys/wait.h>
 
 #include "fon.h"     		/* Primitives de la boite a outils */
+#include "dico.h"
 
 
 #define SERVICE_DEFAUT "1111"
@@ -105,7 +106,8 @@ void majEtat(char *etat, char *mot, char lettre, int lgMot) {
 void penduServeur(int socket) {
 
 	char reponse; //Choix de l'utilsateur concernant la difficulté
-	char *mot = "BIBOUP"; //Mot définit non dynamiquement
+	char *mot = recuperer_mot(lire_dico("dico1.txt")); //Mot définit non dynamiquement
+	printf("MOT : %s\n",mot);
 	char *etat; //Mot affiché à l'utilisateur (non complet donc)
 	int nbCoupsRestants; //Le nombre de coups restants à l'utilisateur avant la fin de la partie
 	int lgMot; //La taille du mot, pour transmettre facilement les données et éviter les erreurs lors des calculs
