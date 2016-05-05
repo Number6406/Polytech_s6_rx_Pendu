@@ -190,7 +190,7 @@ void client_appli (char *serveur,char *service,char *protocole)
   } else {
 		mode = SOCK_STREAM;
   }
-
+SS
 	// Création du socket
   soc_client = h_socket(PF_INET,mode);
 

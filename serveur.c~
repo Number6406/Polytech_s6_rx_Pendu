@@ -231,9 +231,28 @@ void serveur_appli(char *service, char *protocole)
 			h_close(soc_client);
 		}
 	}
+<<<<<<< HEAD
+
+	char *tampon = malloc(2000);
+	int len;
+
+	len = h_writes(soc_client, "Début de partie de pendu\n", 800);
+	len = h_writes(soc_client, "Test frère\n", 800);
+
+	printf("Choisir le niveau de difficulté : \n");
+	printf("1- Facile : 20 essais\n");
+	printf("2- Moyen : 15 essais\n");
+	printf("3- Difficile : 10 essais\n");
+
+	len = h_reads(soc_client, tampon, 1);
+
+	printf("coucou\n");
+
+=======
 	//Fermeture du socket serveur
 	h_close(soc_serveur);
 	exit(0);
+>>>>>>> c27e0b247d177d33a25eecbba1919de508170c9b
 }
 // FIN de programme
 /******************************************************************************/
