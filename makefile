@@ -52,4 +52,4 @@ serveur : ${OBJ2}
 
 
 clean :
-	rm -f ${EXEC} core
+	rm -f ${EXEC} core dico
